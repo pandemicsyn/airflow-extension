@@ -22,11 +22,10 @@ app = typer.Typer(pretty_exceptions_enable=False)
 
 class EchoPlugin:
     def __init__(self):
-        self.echo_invoker = Invoker("echo")  # use built-in echo for demo
+        self.echo_invoker = Invoker("/bin/bash", env=os.environ.copy())  # use built-in echo for demo
 
     def invoke(self, command_name: str | None, *command_args):
-        log.debug("invoke", env=os.environ)
-        log.info("invoke", command_name=command_name, command_args=command_args)
+        log.info("invoke", command_name=command_name, command_args=command_args, env=os.environ)
         if command_name == "trigger_error":
             log.error("triggering a non-0 exit code!")
             raise typer.Exit(code=2)
@@ -34,8 +33,7 @@ class EchoPlugin:
             log.warning("triggering an uncaught exception")
             raise Exception("Triggered exception")
         else:
-            result = self.echo_invoker.run_stream(command_name, *command_args)
-            sys.exit(result.returncode)
+            self.echo_invoker.run_stream(command_name)
 
     def describe(self, desc_format: DescribeFormat) -> None:
         desc = {"commands": [":splat", "trigger_error", "trigger_exception"]}
@@ -71,26 +69,10 @@ def invoke(ctx: typer.Context, command_args: List[str]):
     )
 
     try:
-        plugin.pre_invoke()
-    except Exception as err:
-        log.exception(
-            "pre_invoke failed with uncaught exception, please report exception to maintainer"
-        )
-        sys.exit(1)
-
-    try:
         plugin.invoke(command_name, command_args)
     except Exception as err:
         log.exception(
             "invoke failed with uncaught exception, please report exception to maintainer"
-        )
-        sys.exit(1)
-
-    try:
-        plugin.post_invoke()
-    except Exception as err:
-        log.exception(
-            "ppost_invoke failed with uncaught exception, please report exception to maintainer"
         )
         sys.exit(1)
 

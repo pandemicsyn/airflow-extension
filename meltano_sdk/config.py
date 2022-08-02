@@ -19,5 +19,4 @@ class ExtensionConfig:
             cleaned_key = self.cleaned_config_key(key)
             if cleaned_key:
                 config[cleaned_key] = value
-                print(f"{key} -> {cleaned_key} -> {value}")
         return config

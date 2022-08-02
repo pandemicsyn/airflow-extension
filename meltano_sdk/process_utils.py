@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import sys
 
 import structlog
@@ -40,7 +41,7 @@ class Invoker:
             bin: The name of the binary to run.
             universal_newlines: Whether to use universal newlines.
             cwd: The working directory to run from.
-            env: Env (if desired), to populate popen envs with.
+            env: Env to use when calling Popen.
         """
         self.bin = bin
         self.universal_newlines = universal_newlines
@@ -76,7 +77,7 @@ class Invoker:
             check=True,
         )
 
-    def run_stream(self, *args) -> subprocess.CompletedProcess:
+    def run_stream(self, *args) -> None:
         """Run a subprocess and stream the output to the logger.
 
         Args:
@@ -93,8 +94,10 @@ class Invoker:
             cwd=self.cwd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
+            env=self.popen_env,
         )
         while p.poll() is None:
             log.info(p.stdout.readline().decode("utf-8").rstrip())
+        log.info(p.stdout.readline().decode("utf-8").rstrip())
         if p.returncode:
             raise subprocess.CalledProcessError(p.returncode, p.args)
