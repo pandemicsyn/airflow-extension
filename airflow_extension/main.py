@@ -68,7 +68,7 @@ def describe(
 ):
     """Describe the available commands of this extension."""
     try:
-        plugin.describe(output_format)
+        typer.echo(plugin.describe_formatted(output_format))
     except Exception as err:
         log.exception(
             "describe failed with uncaught exception, please report exception to maintainer"

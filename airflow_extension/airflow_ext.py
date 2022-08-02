@@ -12,7 +12,8 @@ import click
 import structlog
 
 from meltano_sdk.config import ExtensionConfig
-from meltano_sdk.extension_base import ExtensionBase, DescribeFormat
+from meltano_sdk.extension_base import (DescribeFormat, Description,
+                                        ExtensionBase)
 from meltano_sdk.process_utils import Invoker, log_subprocess_error
 
 log = structlog.get_logger()
@@ -73,16 +74,10 @@ class Airflow(ExtensionBase):
             )
             sys.exit(1)
 
-    def describe(self, desc_format: DescribeFormat) -> None:
-        desc = {"commands": [":splat"]}
-        if desc_format == DescribeFormat.text:
-            click.echo("commands:", desc.items())
-        elif desc_format == DescribeFormat.json:
-            click.echo(json.dumps(desc, indent=2))
-        elif desc_format == DescribeFormat.yaml:
-            raise NotImplementedError("YAML output is not supported by this extension")
-        else:
-            raise ValueError(f"Unknown format: {desc_format}")
+    def describe(self) -> Description:
+        return Description(
+            commands=["invoke :splat", "webserver", "scheduler", "version"]
+        )
 
     def _create_config(self):
         # create an initial airflow config file
