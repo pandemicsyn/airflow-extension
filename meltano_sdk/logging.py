@@ -25,21 +25,30 @@ def parse_log_level(log_level: dict[str, int]) -> int:
     return LEVELS.get(log_level.lower(), LEVELS[DEFAULT_LEVEL])
 
 
-def default_logging_config(level=logging.INFO, json_format=False):
+def default_logging_config(
+    level=logging.INFO,
+    timestamps: bool = True,
+    levels: bool = True,
+    json_format: bool = False,
+):
     """default/demo structlog configuration.
 
     Args:
         level: logging level.
+        timestamps: include timestamps in the log.
+        levels: include levels in the log.
         json_format: if True, use JSON format, otherwise use human-readable format.
     """
-    structlog.configure(
-        processors=[
+    processors = []
+    if timestamps:
+        processors.append(structlog.processors.TimeStamper(fmt="iso"))
+    if levels:
+        processors.append(structlog.processors.add_log_level)
+
+    processors.extend(
+        [
             # If log level is too low, abort pipeline and throw away log entry.
             structlog.stdlib.filter_by_level,
-            # Add log level to event dict.
-            structlog.stdlib.add_log_level,
-            # Add a timestamp in ISO 8601 format.
-            structlog.processors.TimeStamper(fmt="iso"),
             # If the "stack_info" key in the event dict is true, remove it and
             # render the current stack trace in the "stack" key.
             structlog.processors.StackInfoRenderer(),
@@ -54,7 +63,11 @@ def default_logging_config(level=logging.INFO, json_format=False):
             structlog.processors.JSONRenderer()
             if json_format
             else structlog.dev.ConsoleRenderer(colors=False),
-        ],
+        ]
+    )
+
+    structlog.configure(
+        processors=processors,
         # `wrapper_class` is the bound logger that you get back from
         # get_logger(). This one imitates the API of `logging.Logger`.
         wrapper_class=structlog.stdlib.BoundLogger,

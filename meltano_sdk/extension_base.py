@@ -21,10 +21,32 @@ class ExtensionBase(metaclass=ABCMeta):
     """Basic extension base class that all extensions should inherit from and satisfy."""
 
     @abstractmethod
+    def pre_invoke(self):
+        """Called before the extension is invoked."""
+        pass
+
+    @abstractmethod
     def invoke(self) -> None:
         """Invoke method.
 
-        This method is called when the plugin is invoked.
+        This method is called when the extension is invoked.
+        """
+        pass
+
+    @abstractmethod
+    def post_invoke(self):
+        """Called after the extension is invoked."""
+        pass
+
+    @abstractmethod
+    def initialize(self, force: bool = False):
+        """Perform any explicit one time initialization of the extension.
+
+        Currently, this is explicitly called by the user, in the future this will be called automatically at install
+        time.
+
+        Args:
+            force: If True, force the initialization to run even if it has already been run.
         """
         pass
 
@@ -50,9 +72,14 @@ class ExtensionBase(metaclass=ABCMeta):
         Returns:
             str: The formatted description.
         """
+
+        meltano_config = {}
+        for x in self.describe().commands:
+            meltano_config[x] = f"invoke {x}"
+
         if output_format == DescribeFormat.text:
             return f"commands: {self.describe().commands}"
         elif output_format == DescribeFormat.json:
-            return json.dumps(self.describe().dict(), indent=2)
+            return json.dumps({"commands": meltano_config}, indent=2)
         elif output_format == DescribeFormat.yaml:
-            return yaml.dump(self.describe().dict())
+            return yaml.dump({"commands": meltano_config})

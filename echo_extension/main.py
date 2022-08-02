@@ -9,7 +9,7 @@ from typing import List, Optional
 import structlog
 import typer
 
-from meltano_sdk.extension_base import DescribeFormat
+from meltano_sdk.extension_base import DescribeFormat, Description
 from meltano_sdk.logging import default_logging_config, parse_log_level
 from meltano_sdk.process_utils import Invoker
 
@@ -35,16 +35,8 @@ class EchoPlugin:
         else:
             self.echo_invoker.run_stream(command_name)
 
-    def describe(self, desc_format: DescribeFormat) -> None:
-        desc = {"commands": [":splat", "trigger_error", "trigger_exception"]}
-        if desc_format == DescribeFormat.text:
-            typer.echo("commands:", desc.items())
-        elif desc_format == DescribeFormat.json:
-            typer.echo(json.dumps(desc, indent=2))
-        elif desc_format == DescribeFormat.yaml:
-            raise NotImplementedError("YAML output is not supported by this extension")
-        else:
-            raise ValueError(f"Unknown format: {desc_format}")
+    def describe(self) -> Description:
+        return Description(commands=["trigger_error", "trigger_exception", ":splat"])
 
 
 plugin = EchoPlugin()

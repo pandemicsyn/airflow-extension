@@ -1,19 +1,14 @@
 from __future__ import annotations
 
-import configparser
-import json
 import os
 import subprocess
 import sys
-from distutils.dir_util import copy_tree
 from pathlib import Path
 
-import click
 import structlog
 
 from meltano_sdk.config import ExtensionConfig
-from meltano_sdk.extension_base import (DescribeFormat, Description,
-                                        ExtensionBase)
+from meltano_sdk.extension_base import Description, ExtensionBase
 from meltano_sdk.process_utils import Invoker, log_subprocess_error
 
 log = structlog.get_logger()
@@ -54,7 +49,6 @@ class Airflow(ExtensionBase):
         os.environ["SLUGIFY_USES_TEXT_UNIDECODE"] = "yes"
 
         self.env_config = ExtensionConfig("airflow", "AIRFLOW_").load()
-        log.debug("Loaded env config", env_config=self.env_config)
 
     def pre_invoke(self):
         self._create_config()
@@ -75,9 +69,8 @@ class Airflow(ExtensionBase):
             sys.exit(1)
 
     def describe(self) -> Description:
-        return Description(
-            commands=["invoke :splat", "webserver", "scheduler", "version"]
-        )
+        # TODO: could we build this from typer instead?
+        return Description(commands=[":splat", "webserver", "scheduler", "version"])
 
     def _create_config(self):
         # create an initial airflow config file

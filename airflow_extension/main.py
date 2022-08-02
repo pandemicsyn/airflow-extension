@@ -17,6 +17,17 @@ plugin = Airflow()
 app = typer.Typer(pretty_exceptions_enable=False)
 
 
+@app.command()
+def initialize(ctx: typer.Context, force: bool = False):
+    try:
+        plugin.initialize(force)
+    except Exception as e:
+        log.exception(
+            "initialize failed with uncaught exception, please report exception to maintainer"
+        )
+        sys.exit(1)
+
+
 @app.command(
     context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
 )
@@ -80,11 +91,19 @@ def describe(
 def main(
     ctx: typer.Context,
     log_level: str = typer.Option("INFO", envvar="LOG_LEVEL"),
+    log_timestamps: bool = typer.Option(
+        True, envvar="LOG_TIMESTAMPS", help="Show timestamp in logs"
+    ),
+    log_levels: bool = typer.Option(
+        True, "--log-levels", envvar="LOG_LEVELS", help="Show log levels"
+    ),
 ):
     """
     Simple Meltano extension to wrap the airflow CLI.
     """
-    default_logging_config(parse_log_level(log_level))
+    default_logging_config(
+        level=parse_log_level(log_level), timestamps=log_timestamps, levels=log_levels
+    )
     if ctx.invoked_subcommand is None:
         log.debug("called without subcommand, defaulting to describe")
         plugin.describe()
