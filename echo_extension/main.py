@@ -22,7 +22,7 @@ app = typer.Typer(pretty_exceptions_enable=False)
 
 class EchoPlugin(ExtensionBase):
     def __init__(self):
-        self.echo_invoker = Invoker("/bin/bash", env=os.environ.copy())  # use built-in echo for demo
+        self.echo_invoker = Invoker("/bin/echo", env=os.environ.copy())  # use built-in echo for demo
 
     def invoke(self, command_name: str | None, *command_args):
         log.info("invoke", command_name=command_name, command_args=command_args, env=os.environ)
@@ -33,7 +33,7 @@ class EchoPlugin(ExtensionBase):
             log.warning("triggering an uncaught exception")
             raise Exception("Triggered exception")
         else:
-            self.echo_invoker.run_stream(command_name)
+            self.echo_invoker.run_stream(command_name, *command_args)
 
     def describe(self) -> Description:
         return Description(commands=["trigger_error", "trigger_exception", ":splat"])

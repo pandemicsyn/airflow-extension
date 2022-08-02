@@ -61,7 +61,7 @@ class Airflow(ExtensionBase):
 
     def invoke(self, command_name: str | None, *command_args):
         try:
-            result = self.airflow_invoker.run_stream(command_name)
+            result = self.airflow_invoker.run_stream(command_name, *command_args)
         except subprocess.CalledProcessError as err:
             log_subprocess_error(
                 f"airflow {command_name}", err, "airflow invocation failed"

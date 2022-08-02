@@ -104,6 +104,3 @@ def main(
     default_logging_config(
         level=parse_log_level(log_level), timestamps=log_timestamps, levels=log_levels
     )
-    if ctx.invoked_subcommand is None:
-        log.debug("called without subcommand, defaulting to describe")
-        plugin.describe()

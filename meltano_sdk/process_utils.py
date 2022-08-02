@@ -77,7 +77,7 @@ class Invoker:
             check=True,
         )
 
-    def run_stream(self, *args) -> None:
+    def run_stream(self, sub_command: str | None = None, *args) -> None:
         """Run a subprocess and stream the output to the logger.
 
         Args:
@@ -89,8 +89,13 @@ class Invoker:
         Raises:
             subprocess.CalledProcessError: If the subprocess failed.
         """
+        popen_args = [self.bin]
+        if sub_command:
+            popen_args.append(sub_command)
+        if args:
+            popen_args.extend(*args)
         p = subprocess.Popen(
-            [self.bin, *args],
+            popen_args,
             cwd=self.cwd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
