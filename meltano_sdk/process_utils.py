@@ -1,14 +1,12 @@
+"""Utilities for working with subprocesses."""
+
 from __future__ import annotations
 
 import asyncio
-import os
-import sys
+import subprocess
+from asyncio.subprocess import PIPE
 
 import structlog
-
-"""Utilities for working with subprocesses."""
-
-import subprocess
 
 log = structlog.get_logger()
 
@@ -53,8 +51,8 @@ class Invoker:
     ) -> subprocess.CompletedProcess:
         """Run a subprocess. Simple wrapper around subprocess.run.
 
-        Note that output from stdout and stderr is not proactively logged. Best used when you do not need to show
-        the output to an end user.
+        Note that output from stdout and stderr is NOT logged automatically. Especially useful when you want to run a
+        command, but don't care about its output and only care about its return code.
 
         Args:
             *args: The arguments to pass to the subprocess.
@@ -77,32 +75,46 @@ class Invoker:
             check=True,
         )
 
-    def run_stream(self, sub_command: str | None = None, *args) -> None:
+    def run_and_log(self, sub_command: str | None = None, *args) -> None:
         """Run a subprocess and stream the output to the logger.
 
-        Args:
-            *args: The arguments to pass to the subprocess.
+        Note that output from stdout and stderr is logged by default. Best used when you want to run a command and
+        stream the output to a user.
 
-        Returns:
-            The completed process.
+        Args:
+            sub_command: The subcommand to run.
+            *args: The arguments to pass to the subprocess.
 
         Raises:
             subprocess.CalledProcessError: If the subprocess failed.
         """
-        popen_args = [self.bin]
-        if sub_command:
-            popen_args.append(sub_command)
-        if args:
-            popen_args.extend(*args)
-        p = subprocess.Popen(
-            popen_args,
-            cwd=self.cwd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            env=self.popen_env,
-        )
-        while p.poll() is None:
-            log.info(p.stdout.readline().decode("utf-8").rstrip())
-        log.info(p.stdout.readline().decode("utf-8").rstrip())
-        if p.returncode:
-            raise subprocess.CalledProcessError(p.returncode, p.args)
+
+        async def _log_stdio(reader: asyncio.streams.StreamReader):
+            while True:
+                if reader.at_eof():
+                    break
+                data = await reader.readline()
+                log.info(data.decode("utf-8").rstrip())
+                await asyncio.sleep(0)
+
+        async def _exec() -> asyncio.subprocess.Process:
+            popen_args = []
+            if sub_command:
+                popen_args.append(sub_command)
+            if args:
+                popen_args.extend(*args)
+
+            p = await asyncio.create_subprocess_exec(
+                self.bin, *popen_args, stdout=PIPE, stderr=PIPE, env=self.popen_env
+            )
+            asyncio.create_task(_log_stdio(p.stderr))
+            asyncio.create_task(_log_stdio(p.stdout))
+
+            await p.wait()
+            return p
+
+        result = asyncio.run(_exec())
+        if result.returncode:
+            raise subprocess.CalledProcessError(
+                result.returncode, cmd=self.bin, stderr=None
+            )

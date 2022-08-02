@@ -27,8 +27,8 @@ def parse_log_level(log_level: dict[str, int]) -> int:
 
 def default_logging_config(
     level=logging.INFO,
-    timestamps: bool = True,
-    levels: bool = True,
+    timestamps: bool = False,
+    levels: bool = False,
     json_format: bool = False,
 ):
     """default/demo structlog configuration.

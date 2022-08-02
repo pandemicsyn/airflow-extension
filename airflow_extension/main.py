@@ -21,7 +21,7 @@ app = typer.Typer(pretty_exceptions_enable=False)
 def initialize(ctx: typer.Context, force: bool = False):
     try:
         plugin.initialize(force)
-    except Exception as e:
+    except Exception:
         log.exception(
             "initialize failed with uncaught exception, please report exception to maintainer"
         )
@@ -48,7 +48,7 @@ def invoke(ctx: typer.Context, command_args: List[str]):
 
     try:
         plugin.pre_invoke()
-    except Exception as err:
+    except Exception:
         log.exception(
             "pre_invoke failed with uncaught exception, please report exception to maintainer"
         )
@@ -56,7 +56,7 @@ def invoke(ctx: typer.Context, command_args: List[str]):
 
     try:
         plugin.invoke(command_name, command_args)
-    except Exception as err:
+    except Exception:
         log.exception(
             "invoke failed with uncaught exception, please report exception to maintainer"
         )
@@ -64,7 +64,7 @@ def invoke(ctx: typer.Context, command_args: List[str]):
 
     try:
         plugin.post_invoke()
-    except Exception as err:
+    except Exception:
         log.exception(
             "ppost_invoke failed with uncaught exception, please report exception to maintainer"
         )
@@ -80,7 +80,7 @@ def describe(
     """Describe the available commands of this extension."""
     try:
         typer.echo(plugin.describe_formatted(output_format))
-    except Exception as err:
+    except Exception:
         log.exception(
             "describe failed with uncaught exception, please report exception to maintainer"
         )
@@ -92,10 +92,10 @@ def main(
     ctx: typer.Context,
     log_level: str = typer.Option("INFO", envvar="LOG_LEVEL"),
     log_timestamps: bool = typer.Option(
-        True, envvar="LOG_TIMESTAMPS", help="Show timestamp in logs"
+        False, envvar="LOG_TIMESTAMPS", help="Show timestamp in logs"
     ),
     log_levels: bool = typer.Option(
-        True, "--log-levels", envvar="LOG_LEVELS", help="Show log levels"
+        False, "--log-levels", envvar="LOG_LEVELS", help="Show log levels"
     ),
 ):
     """

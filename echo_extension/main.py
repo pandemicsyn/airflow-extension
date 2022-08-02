@@ -33,7 +33,7 @@ class EchoPlugin(ExtensionBase):
             log.warning("triggering an uncaught exception")
             raise Exception("Triggered exception")
         else:
-            self.echo_invoker.run_stream(command_name, *command_args)
+            self.echo_invoker.run_and_log(command_name, *command_args)
 
     def describe(self) -> Description:
         return Description(commands=["trigger_error", "trigger_exception", ":splat"])

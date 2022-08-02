@@ -17,10 +17,9 @@ log = structlog.get_logger()
 class Airflow(ExtensionBase):
     def __init__(self):
 
+        self.app_name = "airflow_extension"
         self.airflow_bin = "airflow"
         self.airflow_invoker = Invoker(self.airflow_bin, env=os.environ.copy())
-
-        self.app_name = "airflow_extension"
 
         self.airflow_home = os.environ.get("AIRFLOW_HOME") or os.environ.get(
             f"{self.app_name}_AIRFLOW_HOME"
@@ -61,7 +60,7 @@ class Airflow(ExtensionBase):
 
     def invoke(self, command_name: str | None, *command_args):
         try:
-            result = self.airflow_invoker.run_stream(command_name, *command_args)
+            self.airflow_invoker.run_and_log(command_name, *command_args)
         except subprocess.CalledProcessError as err:
             log_subprocess_error(
                 f"airflow {command_name}", err, "airflow invocation failed"
@@ -85,7 +84,7 @@ class Airflow(ExtensionBase):
     def _initdb(self):
         """Initialize the airflow metadata database."""
         try:
-            result = self.airflow_invoker.run("db", "init")
+            self.airflow_invoker.run("db", "init")
         except subprocess.CalledProcessError as err:
             log_subprocess_error("airflow db init", err, "airflow db init failed")
             sys.exit(1)
