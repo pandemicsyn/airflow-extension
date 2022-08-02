@@ -5,6 +5,7 @@ import json
 import os
 import subprocess
 import sys
+from distutils.dir_util import copy_tree
 from pathlib import Path
 
 import click
@@ -92,27 +93,6 @@ class Airflow(ExtensionBase):
                 "airflow --help", err, "initial airflow invocation failed"
             )
             sys.exit(1)
-
-    def _update_config(self):
-        # open the configuration and update it
-        # now we let's update the config to use our stubs
-        airflow_cfg = configparser.ConfigParser()
-
-        with self.airflow_cfg_path.open() as airflow_cfg_file_to_read:
-            airflow_cfg.read_file(airflow_cfg_file_to_read)
-            log.debug("Loaded airflow cfg", config_path={str(self.airflow_cfg_path)})
-
-        for section, section_config in self.env_config.items():
-            airflow_cfg[section].update(section_config)
-            log.debug(
-                "Updated airflow cfg section",
-                section=section,
-                section_config=section_config,
-            )
-
-        with self.airflow_cfg_path.open("w") as airflow_cfg_file_to_write:
-            airflow_cfg.write(airflow_cfg_file_to_write)
-            log.debug("Saved airflow cfg", config_path={str(self.airflow_cfg_path)})
 
     def _initdb(self):
         """Initialize the airflow metadata database."""

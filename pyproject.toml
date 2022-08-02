@@ -11,7 +11,7 @@ packages = [
     { include = "airflow_extension" },
     { include = "meltano_sdk" },
 ]
-include = ["bundle/*"]
+include = ["bundle/orchestrate/dags/meltano.py"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
