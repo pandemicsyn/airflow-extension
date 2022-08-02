@@ -20,7 +20,6 @@ class Description(BaseModel):
 class ExtensionBase(metaclass=ABCMeta):
     """Basic extension base class that all extensions should inherit from and satisfy."""
 
-    @abstractmethod
     def pre_invoke(self):
         """Called before the extension is invoked."""
         pass
@@ -33,12 +32,10 @@ class ExtensionBase(metaclass=ABCMeta):
         """
         pass
 
-    @abstractmethod
     def post_invoke(self):
         """Called after the extension is invoked."""
         pass
 
-    @abstractmethod
     def initialize(self, force: bool = False):
         """Perform any explicit one time initialization of the extension.
 

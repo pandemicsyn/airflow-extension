@@ -9,7 +9,7 @@ from typing import List, Optional
 import structlog
 import typer
 
-from meltano_sdk.extension_base import DescribeFormat, Description
+from meltano_sdk.extension_base import DescribeFormat, Description, ExtensionBase
 from meltano_sdk.logging import default_logging_config, parse_log_level
 from meltano_sdk.process_utils import Invoker
 
@@ -20,7 +20,7 @@ APP_NAME: str = "mecho"
 app = typer.Typer(pretty_exceptions_enable=False)
 
 
-class EchoPlugin:
+class EchoPlugin(ExtensionBase):
     def __init__(self):
         self.echo_invoker = Invoker("/bin/bash", env=os.environ.copy())  # use built-in echo for demo
 
@@ -77,7 +77,7 @@ def describe(
 ):
     """Describe the available commands of this extension."""
     try:
-        plugin.describe(output_format)
+        typer.echo(plugin.describe_formatted(output_format))
     except Exception as err:
         log.exception(
             "describe failed with uncaught exception, please report exception to maintainer"
