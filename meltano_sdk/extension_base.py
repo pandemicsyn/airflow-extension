@@ -36,17 +36,6 @@ class ExtensionBase(metaclass=ABCMeta):
         """Called after the extension is invoked."""
         pass
 
-    def initialize(self, force: bool = False):
-        """Perform any explicit one time initialization of the extension.
-
-        Currently, this is explicitly called by the user, in the future this will be called automatically at install
-        time.
-
-        Args:
-            force: If True, force the initialization to run even if it has already been run.
-        """
-        pass
-
     @abstractmethod
     def describe(self) -> Description:
         """Describe method.

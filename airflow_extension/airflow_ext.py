@@ -44,6 +44,10 @@ class Airflow(ExtensionBase):
                 airflow_cfg_path=self.airflow_cfg_path,
             )
 
+        self.airflow_core_dags_path = (
+            Path(os.environ.get("AIRFLOW__CORE__DAGS_FOLDER", f"{self.airflow_home}/orchestrate/dags"))
+        )
+
         # Configure the env to make airflow installable without GPL deps.
         os.environ["SLUGIFY_USES_TEXT_UNIDECODE"] = "yes"
 
@@ -51,7 +55,7 @@ class Airflow(ExtensionBase):
 
     def pre_invoke(self):
         self._create_config()
-        # self._update_config()
+        self._deploy_dag_generator()
         self._initdb()
 
     @staticmethod
@@ -81,6 +85,18 @@ class Airflow(ExtensionBase):
             )
             sys.exit(1)
 
+    def _deploy_dag_generator(self):
+        """Write out the meltano dag generator to the airflow home if it does not exist."""
+        self.airflow_core_dags_path.mkdir(parents=True, exist_ok=True)
+        dag_generator_path = self.airflow_core_dags_path / "meltano_dag_generator.py"
+        if not dag_generator_path.exists():
+            import importlib.resources
+            dag_generator_path.write_text(
+                importlib.resources.read_text(
+                    "files_airflow_ext.orchestrator", "meltano.py"
+                )
+            )
+
     def _initdb(self):
         """Initialize the airflow metadata database."""
         try:
@@ -88,10 +104,3 @@ class Airflow(ExtensionBase):
         except subprocess.CalledProcessError as err:
             log_subprocess_error("airflow db init", err, "airflow db init failed")
             sys.exit(1)
-
-    def _cleanup(self):
-        try:
-            self.airflow_cfg_path.unlink()
-            log.debug("Removed airflow cfg", config_path={str(self.airflow_cfg_path)})
-        except FileNotFoundError:
-            pass

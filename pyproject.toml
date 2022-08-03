@@ -13,7 +13,7 @@ packages = [
     { include = "meltano_sdk" },
 ]
 
-include = ["bundle/orchestrate/dags/meltano.py"]
+include = ["files_airflow_ext/orchestrate/meltano.py"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
