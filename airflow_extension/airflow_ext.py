@@ -55,7 +55,7 @@ class Airflow(ExtensionBase):
 
     def pre_invoke(self):
         self._create_config()
-        self._deploy_dag_generator()
+        #self._deploy_dag_generator()
         self._initdb()
 
     @staticmethod
