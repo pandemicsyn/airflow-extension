@@ -13,7 +13,10 @@ packages = [
     { include = "meltano_sdk" },
 ]
 
-include = ["files_airflow_ext/orchestrate/meltano.py"]
+include = [
+    "files_airflow_ext/orchestrate/meltano.py",
+    "files_airflow_ext/orchestrate/README.md",
+]
 
 [tool.poetry.dependencies]
 python = "^3.8"

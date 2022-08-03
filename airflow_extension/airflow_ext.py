@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.resources
 import os
 import subprocess
 import sys
@@ -44,8 +45,10 @@ class Airflow(ExtensionBase):
                 airflow_cfg_path=self.airflow_cfg_path,
             )
 
-        self.airflow_core_dags_path = (
-            Path(os.environ.get("AIRFLOW__CORE__DAGS_FOLDER", f"{self.airflow_home}/orchestrate/dags"))
+        self.airflow_core_dags_path = Path(
+            os.environ.get(
+                "AIRFLOW__CORE__DAGS_FOLDER", f"{self.airflow_home}/orchestrate/dags"
+            )
         )
 
         # Configure the env to make airflow installable without GPL deps.
@@ -55,7 +58,7 @@ class Airflow(ExtensionBase):
 
     def pre_invoke(self):
         self._create_config()
-        #self._deploy_dag_generator()
+        self._deploy_dag_generator()
         self._initdb()
 
     @staticmethod
@@ -88,12 +91,20 @@ class Airflow(ExtensionBase):
     def _deploy_dag_generator(self):
         """Write out the meltano dag generator to the airflow home if it does not exist."""
         self.airflow_core_dags_path.mkdir(parents=True, exist_ok=True)
+
         dag_generator_path = self.airflow_core_dags_path / "meltano_dag_generator.py"
         if not dag_generator_path.exists():
-            import importlib.resources
             dag_generator_path.write_text(
                 importlib.resources.read_text(
                     "files_airflow_ext.orchestrator", "meltano.py"
+                )
+            )
+
+        readme_path = self.airflow_core_dags_path / "README.md"
+        if not readme_path.exists():
+            readme_path.write_text(
+                importlib.resources.read_text(
+                    "files_airflow_ext.orchestrator", "README.md"
                 )
             )
 
